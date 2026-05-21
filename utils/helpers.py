@@ -35,9 +35,18 @@ def get_date(prompt):
         print(" [!] Invalid date. Using today instead.")
         return None
     
-def get_int(prompt):
+def get_int(prompt, min_val = None, max_val = None):
     while True:
         try:
-            return int(input(prompt))
+            value = int(input(prompt).strip())
+            if min_val is not None and value < min_val:
+                print(f" [!] Must be at least {min_val}.")
+                continue
+            
+            if max_val is not None and value > max_val:
+                print(f" [!] Must ne at most {max_val}.")
+                continue
+            
+            return value
         except ValueError:
-            print(" [!] Enter valid whole number.")
+            print(" [!] Enter a valid number.")

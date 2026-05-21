@@ -12,9 +12,11 @@ def main():
         print("║  1. Add Expense              ║")
         print("║  2. View All Expenses        ║")
         print("║  3. View by Category         ║")
-        print("║  4. Summary                  ║")
-        print("║  5. Delete Expense           ║")
-        print("║  6. Exit                     ║")
+        print("║  4. View by month/year       ║")
+        print("║  5. Summary                  ║")
+        print("║  6. Delete Expense           ║")
+        print("║  7. Export to spreadsheet    ║")
+        print("║  8. Exit                     ║")
         print("╚══════════════════════════════╝")
         
         choice = input("\n Choose an option: ").strip()
@@ -36,22 +38,38 @@ def main():
             Expense.display(rows)
             
         elif choice == "4":
+            month = get_int("\n Enter Month(1-12): ", 1, 12)
+            year = get_int("\n Enter Year(e.g. 2026): ", 2000,2026)
+            rows = Expense.get_by_month(month, year)
+            Expense.display_monthly(rows, month, year)
+            
+        elif choice == "5":
             rows = Expense.get_summary()
             Expense.display_summary(rows)
             
-        elif choice == "5":
+        elif choice == "6":
             rows = Expense.get_all()
             Expense.display(rows)
             if rows:
                 exp_id = get_int("\n Enter ID to delete: ")
                 Expense.delete(exp_id)
                 
-        elif choice == "6":
+        elif choice == "7":
+            month = get_int("\n Enter Month(1-12): ", 1, 12)
+            year = get_int("\n Enter Year(e.g. 2026): ", 2000,2026)
+            rows = Expense.get_by_month(month, year)
+            if not rows:
+                print("\n [!] No Expenses found for that period. Nothing exported.")
+            else:
+                path = Expense.export_to_csv(rows, month, year)
+                print(f"\n [✓] Exported {len(rows)} record(s) -> {path}\n")
+                
+        elif choice == "8":
             print("\n GoodBye \n")
             break
         
         else:
-            print("\n [!] Invalid option.Choose 1-6.")
+            print("\n [!] Invalid option.Choose 1-8.")
 
 if __name__ == "__main__":
     main()            

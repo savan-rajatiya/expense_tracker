@@ -78,6 +78,28 @@ class Expense:
         finally:
             cursor.close()
             conn.close()
+            
+     # ─── READ BY MONTH ────────────────────────────────────
+    
+    def get_by_month(month, year):
+        conn = get_connection()
+        if not conn:
+            return []
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, amount, category, description, date
+                FROM expenses
+                WHERE MONTH(date) = %s AND YEAR(date) = %s
+                ORDER BY date desc
+            """, (month,year))
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"[Error] Could not fetch monthly data: {e}")
+            return []
+        finally:
+            cursor.close()
+            conn.close()
     
     # ─── DELETE ───────────────────────────────────────────
     
@@ -122,8 +144,27 @@ class Expense:
         finally:
             cursor.close()
             conn.close()
+            
+            
+    # ─── CSV EXPORT ───────────────────────────────────────
+    
+    def export_to_csv(rows, month, year):
+        import csv,os
+        from datetime import datetime
+        month_name = datetime(year, month, 1).strftime("%B")
+        filename = f"expenses_{month_name}_{year}.csv"
+        with open(filename, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["ID", "Amount (INR)", "Category", "Description", "Date"])
+            for row in rows:
+                writer.writerow(row)
+        return os.path.abspath(filename)
+                
     
     # ─── DISPLAY HELPERS ──────────────────────────────────
+    
+    
+    # ─── DISPLAY ──────────────────────────────────
     
     def display(rows):
         if not rows:
@@ -132,7 +173,10 @@ class Expense:
         headers = ["ID", "Amount (₹)", "Category", "Description", "Date"]
         formatted = [(r[0], f"{r[1]:.2f}", r[2], r[3] or "-", r[4])for r in rows]
         print("\n"+tabulate(formatted, headers = headers, tablefmt = "rounded_outline"))
-        
+    
+    
+    # ─── SUMMARY ──────────────────────────────────
+       
     def display_summary(rows):
         if not rows:
             print("\n No data yet.")
@@ -143,3 +187,18 @@ class Expense:
         total = sum(r[2] for r in rows)
         print(f" {'-'*34}")
         print(f"Grand Total: ₹{total:.2f}\n")
+        
+   # ─── MONTHLY ──────────────────────────────────
+    
+    def display_monthly(rows, month, year):
+        from datetime import datetime
+        month_lable = datetime(year, month, 1).strftime("%B %Y")
+        print(f"\n Expenses for {month_lable}")
+        if not rows:
+            print("No expenses found for this period.")
+            return
+        headers = ["ID", "Amount (₹)", "Category", "Description", "Date"]
+        formatted = [(r[0], f"{r[1]:.2f}", r[2], r[3] or "-", r[4]) for r in rows]
+        print("\n" + tabulate(formatted, headers = headers, tablefmt = "rounded_outline"))
+        total = sum(r[1] for r in rows)
+        print(f" Monthly Total: ₹{total:.2f}\n")
